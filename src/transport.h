@@ -13,9 +13,12 @@ enum {
 	OP_OK, OP_CMD_NOT_FOUND, OP_ARG_ERROR, OP_TYPE_ERROR
 };
 
+
 extern int err_stat;
 
-void set_obj(char *key, struct object val);
+char *detect_err();
+
+void set_obj(char *key, void *val, enum object_type vt);
 /*exist 1, Or 0 , -1 on error*/
 int exist_obj(char *key, enum object_type vt);
 

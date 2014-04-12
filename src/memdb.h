@@ -9,6 +9,9 @@
 #define MEMDB_H_
 
 #define INSET_DEAFULT_SIZE 1024
+
+#define DB_COUNT 16
+
 typedef char byte;
 typedef int64_t int_t;
 
@@ -23,24 +26,27 @@ enum object_type {
 };
 
 struct object {
-	enum object_type it;
+	enum object_type ot;
 	union {
 		void *add;
 		int_t num;
 	} val;
 };
 struct memdb {
-	struct intset *intset;
-	struct hashtable *dict;
+	size_t count;
+	size_t idx;
+	struct hashtable **dict;
 };
 
-struct object *memdb_get(char *key);
+struct memdb *memdb_new(size_t dbcnt);
 
-void memdb_set(char *key, struct object *val);
+void memdb_set(struct memdb *db, char *key, struct object *val);
 
-int memdb_contain(char *key, struct object *val);
+struct object *memdb_get(struct memdb *db, char *key);
 
-struct object *memdb_del(char *key);
+int memdb_contain(struct memdb *db, char *key, struct object *val);
 
-void memdb_free();
+struct object *memdb_del(struct memdb *db, char *key);
+
+void memdb_free(struct memdb *db);
 #endif /* MEMDB_H_ */

@@ -24,13 +24,23 @@ int err_stat = 0; /*ok*/
  *
  *
  */
-
-static inline struct object *pack_value(struct object val) {
+static inline struct object *pack_object(void *val, enum object_type ot) {
 	struct object *v = malloc(sizeof(struct object));
-	memcpy(v, &val, sizeof(struct object));
+	v->ot = ot;
+	switch (ot) {
+	case INT:
+		int_t n = *((int_t *) val);
+		v->val.num = n;
+		break;
+	case STRING:
+	case LIST:
+	case SET:
+	case SSET:
+		v->val.add = val;
+	}
 	return v;
 }
-static inline void *unpack_value(struct object *v) {
+static inline void *unpack_object(struct object *v) {
 	void *add = v->val.add;
 	free(v);
 	return add;
@@ -75,8 +85,21 @@ static void del_by_type(void *addr, enum object_type vt) {
 	}
 }
 
-void set_obj(char *key, struct object val) {
-	struct object *v = pack_value(val);
+/*OP_OK, OP_CMD_NOT_FOUND, OP_ARG_ERROR, OP_TYPE_ERROR*/
+static char *errset[] = { "", "", "", "" };
+
+char *detect_err() {
+	if (err_stat == OP_OK)
+		return NULL;
+	else {
+		int i = err_stat;
+		err_stat = OP_OK;
+		return errset[i];
+	}
+}
+
+void set_obj(char *key, void *val, enum object_type ot) {
+	struct object *v = pack_object(val, ot);
 	memdb_set(key, v);
 }
 /*exist 1, Or 0 , -1 on error*/
@@ -84,7 +107,7 @@ int exist_obj(char *key, enum object_type vt) {
 	struct object *v = memdb_get(key);
 	if (v == NULL)
 		return 0;
-	else if (v->it != vt) {
+	else if (v->ot != vt) {
 		err_stat = OP_TYPE_ERROR;
 		return -1;
 	} else
@@ -95,7 +118,7 @@ void *get_obj(char *key, enum object_type vt) {
 	struct object *v = memdb_get(key);
 	if (v == NULL)
 		return v;
-	else if (v->it != vt) {
+	else if (v->ot != vt) {
 		err_stat = OP_TYPE_ERROR;
 		return NULL;
 	} else
@@ -106,11 +129,11 @@ int del_obj(char *key, enum object_type vt) {
 	struct object *v = memdb_del(key);
 	if (v == NULL)
 		return 0;
-	else if (v->it != vt) {
+	else if (v->ot != vt) {
 		err_stat = OP_TYPE_ERROR;
 		return -1;
 	} else {
-		del_by_type(unpack_value(v), vt);
+		del_by_type(unpack_object(v), vt);
 		return 1;
 	}
 }
