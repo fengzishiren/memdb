@@ -29,7 +29,7 @@ void handle(struct packet *req, struct packet *resp) {
 	int i;
 	log_debug("argc:%d", cmd->argc);
 	for (i = 0; i < cmd->argc; ++i) {
-		log_debug("argc: %d\t argv: %s\n", i, cmd->argv[i]);
+		log_debug("argc: %d\t argv: %s", i, cmd->argv[i]);
 	}
 	resp->data = execute(cmd);
 

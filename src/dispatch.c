@@ -41,14 +41,22 @@ static struct packet *recv_packet(struct packet *pack) {
 	}
 	data[total] = '\0';
 	pack->data->length = total;
-	log_debug("接收到的数据：%s", pack->data->value);
+
+	struct string *ps = string_escape(pack->data);
+	log_debug("接收到的数据：%s", ps->value);
+	free(ps);
+
 	return pack;
 }
 
 static void send_packet(struct packet *pack) {
 	int len = 0, fd = pack->fd;
 	char *data = pack->data->value;
-	log_debug("即将返回数据%s", data);
+
+	struct string *ps = string_escape(pack->data);
+	log_debug("即将返回数据：%s", ps->value);
+	free(ps);
+
 	size_t size = pack->data->length;
 	if ((len = write(fd, data, size)) != size) {
 		log_error("send_packet: write error!");

@@ -1,9 +1,3 @@
-/*
- * string.h
- *
- *  Created on: 2014年4月10日
- *      Author: Lunatic Poet
- */
 #ifndef STRING_H_
 #define STRING_H_
 
@@ -29,7 +23,7 @@ extern int strcmp(const char *__s1, const char *__s2);
  *  但为了方便与c_str转换 string结构体的value字段总是以'\0'结尾
  *  length的长度不包括结尾的'\0'
  *  hash成员主要为了进行快速匹配 作用不太重要
- *  因此这里采用惰性hash技术 只有到使用时发现hash未设置 才去计算hash值
+ *  因此这里采用惰性hash技术 只有到使用时发现hash未设置(hash = 0) 才去计算hash值
  *
  *  这里惰性hash的设计参考了java语言jdk java.lang.String的设计
  *
@@ -51,14 +45,16 @@ struct string {
 	 */
 	char value[STRING_STACK_SIZE];
 };
-
+/*
+ *
+ * 等于或超过STRING_STACK_SIZE的字符串被截断为STRING_STACK_SIZE - 1
+ *
+ */
 struct string string_stack(const char *s);
 
 struct string *string_new(const char *s);
 
 struct string *string_alloc(size_t nbytes);
-
-struct string *string_format(const char *msg, ...);
 
 struct string *string_concat(struct string *ss, const char *src);
 
@@ -66,10 +62,23 @@ struct string *string_append(struct string *ss, struct string *so);
 
 struct string *string_dup(struct string *ss);
 
+struct string *string_format(const char *msg, ...);
+
+/*
+ *
+ * 转义转义字符为可打印字符 如'\r' 被转换为'\'和'\r'
+ * 仅供调试时使用 对原串没有影响 返回一个新的将所有转义字符都转换成可打印字符
+ *
+ * 注意释放返回的新川
+ */
+struct string *string_escape(struct string *ss);
+
 static inline struct string *string_expand(struct string *ss, size_t new_cap) {
-	ss = realloc(ss, (string_size + byte_size(new_cap, char)));
-	ss->capacity = new_cap;
-	return ss;
+	struct string *nss = realloc(ss, string_size + byte_size(new_cap, char));
+	if (nss != ss)
+		nss->hash = 0;
+	nss->capacity = new_cap;
+	return nss;
 }
 
 static inline int string_empty(struct string *ss) {
