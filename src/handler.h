@@ -1,6 +1,7 @@
 /*
  * handler.h
- *
+ * 对数据包进行处理
+ * 调用执行引擎访问内存数据
  *  Created on: 2014年4月13日
  *      Author: lunatic
  */

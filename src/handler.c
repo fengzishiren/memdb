@@ -20,18 +20,18 @@ void handle(struct packet *req, struct packet *resp) {
 	 *
 	 */
 
-	struct pro_args *args;
-	if ((args = parse_pro(req->data->value)) == NULL) {
+	struct command *cmd;
+	if ((cmd = parse_to_command(req->data->value)) == NULL) {
 		resp->data = string_new("-ERROR 协议错误！");
 		return;
 	}
 
 	int i;
-	log_debug("argc:%d", args->argc);
-	for (i = 0; i < args->argc; ++i) {
-		log_debug("argc: %d\t argv: %s\n", i, args->argv[i]);
+	log_debug("argc:%d", cmd->argc);
+	for (i = 0; i < cmd->argc; ++i) {
+		log_debug("argc: %d\t argv: %s\n", i, cmd->argv[i]);
 	}
-	resp->data = execute(args->argc, args->argv);
+	resp->data = execute(cmd);
 
-	free(args);
+	free(cmd);
 }
