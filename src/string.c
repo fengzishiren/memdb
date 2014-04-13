@@ -1,5 +1,6 @@
 #include <string.h>
-
+#include <stdio.h>
+#include <stdarg.h>
 #include "string.h"
 
 static inline struct string *string_init(const char *s, size_t len) {
@@ -44,20 +45,30 @@ struct string *string_alloc(size_t nbytes) {
 
 struct string *string_format(const char *msg, ...) {
 	struct string *ss = NULL;
-	int length = 1024;
+	int ret, length = 1024;
 	va_list va;
 	va_list args;
+
+	ss = string_expand(ss, length);
+	va_copy(args, va);
+	ret = vsnprintf(ss->value, length, msg, args);
+	va_end(args);
+
+	if (ret < 0)
+		return NULL;/*ignore error*/
+	else if (ret < length)
+		return ss;
+
 	for (;;) {
+		length = ret + 1;
 		ss = string_expand(ss, length);
 		va_copy(args, va);
-		int ret = vsnprintf(ss->value, length, msg, args);
-		if (ret < 0 || ret >= length) {
-			length <<= 1;
-			va_end(args);
-			continue;
-		}
+		ret = vsnprintf(ss->value, length, msg, args);
 		va_end(args);
-		break;
+		if (ret < 0)
+			return NULL;/*ignore error*/
+		if (ret < length)
+			return ss;
 	}
 	return ss;
 }

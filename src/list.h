@@ -55,13 +55,11 @@ size_t list_size(struct list *list);
 
 void list_show(struct list *list);
 
-struct list *list_clear(struct list *list);
-
 struct list_iter *list_iter(struct list *list, struct list_iter *it);
 
 struct list_entry *list_next(struct list_iter *it);
 
-void list_free(struct list *list);
+void list_free(struct list *list, int del_data);
 
 void list_each(struct list *list, void (*handle)(void *e));
 

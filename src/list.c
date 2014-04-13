@@ -26,7 +26,8 @@
 
 struct list *list_new() {
 	struct list *list = malloc(sizeof(struct list));
-	struct list_entry * entry = (struct list_entry *) malloc(sizeof(struct list_entry));
+	struct list_entry * entry = (struct list_entry *) malloc(
+			sizeof(struct list_entry));
 	entry->data = NULL;
 	entry->prev = entry->next = entry;
 	list->head = entry;
@@ -35,7 +36,8 @@ struct list *list_new() {
 }
 
 static inline void entry_addbefore(void *data, struct list_entry *entry) {
-	struct list_entry *new_entry = (struct list_entry *) malloc(sizeof(struct list_entry));
+	struct list_entry *new_entry = (struct list_entry *) malloc(
+			sizeof(struct list_entry));
 	new_entry->data = data;
 	new_entry->next = entry;
 	new_entry->prev = entry->prev;
@@ -48,7 +50,6 @@ static inline struct list_entry *get_entry(struct list *list, size_t index) {
 	int i;
 	struct list_entry *curr = list->head;
 	if (index >= list->size) {
-		printf("Error!list_get()");
 		return NULL;
 	}
 	if (index < (list->size >> 1)) {
@@ -83,7 +84,8 @@ void list_add_pos(struct list *list, void *data, size_t index) {
 }
 
 void *list_get(struct list *list, size_t index) {
-	return get_entry(list, index)->data;
+	struct list_entry *e = get_entry(list, index);
+	return e == NULL ? NULL : e->data;
 }
 /*
  *
@@ -150,10 +152,6 @@ size_t list_size(struct list *list) {
 	return list->size;
 }
 
-struct list *list_clear(struct list *list) {
-	list_free(list);
-	return list_init(list);
-}
 
 void list_free(struct list *list, int del_data) {
 	int len;

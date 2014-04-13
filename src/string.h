@@ -1,3 +1,9 @@
+/*
+ * string.h
+ *
+ *  Created on: 2014年4月10日
+ *      Author: Lunatic Poet
+ */
 #ifndef STRING_H_
 #define STRING_H_
 
@@ -11,11 +17,38 @@ extern int strcmp(const char *__s1, const char *__s2);
 
 #define string_size (sizeof(struct string) - sizeof(char) * STRING_STACK_SIZE)
 #define byte_size(n, type) (n * sizeof(type))
-
+/*
+ * 相对于c_str
+ * 这里将可用的字符空间长度capacity 以及实际的已使用空间length独立出来构成string结构体
+ *
+ * 采用C99 的flexible array member 参考了redis的sds
+ *
+ *
+ * 注意：
+ *  虽然length记录了字符串的实际长度
+ *  但为了方便与c_str转换 string结构体的value字段总是以'\0'结尾
+ *  length的长度不包括结尾的'\0'
+ *  hash成员主要为了进行快速匹配 作用不太重要
+ *  因此这里采用惰性hash技术 只有到使用时发现hash未设置 才去计算hash值
+ *
+ *  这里惰性hash的设计参考了java语言jdk java.lang.String的设计
+ *
+ * 另外要注意：
+ * 		STRING_STACK_SIZE长度只有在stack上非配字段时生效 即使用sting_stack()方法时
+ *  其他创建string时均令STRING_STACK_SIZE = 0
+ *
+ *  这里在堆栈上创建string的设计参考了云风大侠的string实现
+ *
+ *
+ */
 struct string {
 	size_t capacity;
 	size_t length;
 	int hash;
+	/* STRING_STACK_SIZE长度只有在stack上非配字段时生效
+	 * 即使用sting_stack()方法时
+	 * 其他情形均被是为0
+	 */
 	char value[STRING_STACK_SIZE];
 };
 
