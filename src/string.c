@@ -44,33 +44,56 @@ struct string *string_alloc(size_t nbytes) {
 }
 
 struct string *string_format(const char *msg, ...) {
+
 	struct string *ss = NULL;
-	int ret, length = 1024;
+	int length = 1024;
+	va_list va;
+	va_list args;
+	for (;;) {
+		ss = string_expand(ss, length);
+		va_copy(args, va);
+		int ret = vsnprintf(ss->value, length, msg, args);
+		if (ret < 0 || ret >= length) {
+			length <<= 1;
+			va_end(args);
+			continue;
+		}
+		va_end(args);
+		break;
+	}
+	return ss;
+/*
+	struct string *ss = NULL;
+	int ret = 0, length = 1024;
 	va_list va;
 	va_list args;
 
-	ss = string_expand(ss, length);
-	va_copy(args, va);
-	ret = vsnprintf(ss->value, length, msg, args);
-	va_end(args);
 
-	if (ret < 0)
-		return NULL;/*ignore error*/
-	else if (ret < length)
-		return ss;
+	 ss = string_expand(ss, length);
+	 va_copy(args, va);
+	 ret = vsnprintf(ss->value, length, msg, args);
+	 va_end(args);
+
+	 if (ret < 0)
+	 return NULL;ignore error
+	 else if (ret < length)
+	 return ss;
+
 
 	for (;;) {
-		length = ret + 1;
 		ss = string_expand(ss, length);
 		va_copy(args, va);
 		ret = vsnprintf(ss->value, length, msg, args);
 		va_end(args);
-		if (ret < 0)
-			return NULL;/*ignore error*/
+		if (ret < 0) {
+			free(ss);
+			return NULL;ignore error
+		}
 		if (ret < length)
 			return ss;
+		length = ret + 1;
 	}
-	return ss;
+	return ss;*/
 }
 
 struct string *string_dup(struct string *ss) {

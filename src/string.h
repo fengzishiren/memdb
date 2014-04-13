@@ -67,7 +67,7 @@ struct string *string_append(struct string *ss, struct string *so);
 struct string *string_dup(struct string *ss);
 
 static inline struct string *string_expand(struct string *ss, size_t new_cap) {
-	ss = realloc(ss, string_size + byte_size(new_cap, char));
+	ss = realloc(ss, (string_size + byte_size(new_cap, char)));
 	ss->capacity = new_cap;
 	return ss;
 }
