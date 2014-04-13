@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "protocol.h"
 
 /*
  *
@@ -15,12 +16,8 @@
  *
  */
 
-struct args {
-	int argc;
-	char **argv;
-} args = { .argv = NULL };
-
-static int split(char *data) {
+struct pro_args * parse_pro(char *data) {
+	struct pro_args *args = malloc(sizeof(struct pro_args));
 	char *p = data;
 	if (*p != '*')
 		goto err;
@@ -35,10 +32,10 @@ static int split(char *data) {
 	*p = '\0';
 	p += 2;
 
-	args.argc = (int) strtol(data + 1, NULL, 10);
-	if (args.argc < 1)
+	args->argc = (int) strtol(data + 1, NULL, 10);
+	if (args->argc < 1)
 		goto err;
-	args.argv = malloc(sizeof(char *) * args.argc);
+	args->argv = malloc(sizeof(char *) * args->argc);
 
 	char *tok;
 	int i;
@@ -51,39 +48,77 @@ static int split(char *data) {
 		if (tok == NULL || strlen(tok) != len)
 			goto err;
 
-		if (i >= args.argc)
+		if (i >= args->argc)
 			goto err;
 
-		args.argv[i] = tok;
+		args->argv[i] = tok;
 
 		if (p)
 			p = NULL;
 	}
 
-	if (i != args.argc)
+	if (i != args->argc)
 		goto err;
 
-	return 0;
+	return args;
 
-	err: return -1;
+	err: return NULL;
 }
-/*void parse(struct string *ss) {
- int i;
- for (i = 0; i < ss->length; ++i) {
 
- }
- }*/
-extern void execute(int argc, char **argv);
-int _main() {
+/*
+ *
+ *
+ * *5\r\n
+ * :1\r\n
+ * :2\r\n
+ * :3\r\n
+ * :4\r\n
+ * $6\r\n
+ * foobar\r\n
+ *
+ */
+struct string *list_to_pro_string(struct list *ls) {
+	char buf[20];
 
-	char req[] = "*3\r\n$3\r\nSET\r\n$5\r\nmykey\r\n$7\r\nmyvalue\r\n";
-	//char req[] = "*2\r\n$3\r\nGET\r\n$4\r\nname\r\n";
-	split(req);
+	struct string *s = string_new(PRO_MULTI);
+	sprintf(buf, "%lu", (ls->size));
+	s = string_concat(s, buf);
+	s = string_concat(s, PRO_NEW_LINE);
 
-	int i;
-	for (i = 0; i < args.argc; ++i) {
-		printf("argc: %d\t argv: %s\n", i, args.argv[i]);
+	struct list_iter it;
+	list_iter(ls, &it);
+	struct list_entry *e;
+	while ((e = list_next(&it)) != NULL) {
+		char *item = (char *) e->data;
+		s = string_concat(s, PRO_BULK);
+		sprintf(buf, "%lu", strlen(item));
+		s = string_concat(s, buf);
+		s = string_concat(s, PRO_NEW_LINE);
+		s = string_concat(s, item);
+		s = string_concat(s, PRO_NEW_LINE);
 	}
-	execute(args.argc, args.argv);
-	return 0;
+	return s;
+}
+
+struct string *object_to_pro_string(struct object *o) {
+
+	struct string *str = NULL;
+	switch (o->ot) {
+	case INT:
+		str = string_format(PRO_INTEGER_DATA, (long long int) o->val.num);
+		break;
+	case STRING:
+		/*$6\r\nfoobar\r\n"*/
+		/*char *s = (const char *) o->val.add;*/
+		str = string_format(PRO_STRING_DATA,
+				(int) strlen((const char *) o->val.add),
+				(const char *) o->val.add);
+		break;
+	case LIST:
+		str = list_to_pro_string((struct list *) o->val.add);
+		break;
+	default:
+		break;
+	}
+	return str;
 }

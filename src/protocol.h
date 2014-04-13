@@ -8,6 +8,11 @@
 #ifndef PROTOCOL_H_
 #define PROTOCOL_H_
 
+#include "string.h"
+#include "list.h"
+#include "memdb.h"
+
+
 /**
  *
  * Redis 命令会返回多种不同类型的回复。
@@ -61,13 +66,32 @@
 #define PRO_NEW_LINE "\r\n"
 
 #define PRO_OK "+OK\r\n"
-
-#define PRO_ERROR "-ERROR %s\r\n"
+#define PRO_PONG "+PONG\r\n"
+/*#define PRO_ERROR "-ERROR %s\r\n"*/
 #define PRO_TYPE_ERROR "-WRONGTYPE %s\r\n"
 
 #define PRO_INTEGER_DATA ":%lld\r\n"
 #define PRO_STRING_DATA "$%d\r\n%s\rn"
 
-#define PRO_NULL "$-1\r\n"
+#define PRO_ARG_ILLEGAL "-ERROR 命令参数不匹配\r\n"
+
+#define PRO_NULL_DATA "$-1\r\n"
+
+
+struct pro_args {
+	int argc;
+	char **argv;
+};
+
+/*
+ *
+ * 解析成功返回新的struct pro_args * 出错返回NULL
+ * 注意：释放free(struct pro_args *)
+ */
+struct pro_args *parse_pro(char *data);
+
+struct string *list_to_pro_string(struct list *ls);
+
+struct string *object_to_pro_string(struct object *o);
 
 #endif /* PROTOCOL_H_ */
