@@ -11,7 +11,7 @@
 #define INSET_DEAFULT_SIZE 1024
 
 #define DB_COUNT 16
-
+#include <stdint.h>
 typedef char byte;
 typedef int64_t int_t;
 
