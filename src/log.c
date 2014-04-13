@@ -4,12 +4,11 @@
  *  Created on: 2013-9-12
  *      Author: lunatic
  */
-#include <stdio.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <stdarg.h>
-
 #include "log.h"
 
 #define STD_FORMAT "%s  %-6s  \t- %s\n"
@@ -25,11 +24,11 @@ NULL };
 static struct {
 	enum Level cur_level;
 	const char *file_name;
-	FILE *of;
+	FILE *console, *of;
 	size_t max_length;
 	int file_index;
-} logger = { .cur_level = VERBOSE, .file_name = NULL, .of = NULL, .max_length =
-		10 * 1024 * 1024, .file_index = 0 };
+} logger = { .cur_level = VERBOSE, .console = NULL, .file_name = NULL, .of =
+NULL, .max_length = 10 * 1024 * 1024, .file_index = 0 };
 
 static inline long log_file_size() {
 	long cur = ftell(logger.of);
@@ -67,12 +66,11 @@ static inline void output(FILE *out, const char *level, const char *tag,
 		fprintf(out, STD_FORMAT, cur_time(buf), level, msg);
 	else
 		fprintf(out, TAG_FORMAT, cur_time(buf), level, tag, msg);
-	/*fflush(out);*/
+	fflush(out);
 }
 
 static void format(enum Level lv, const char *tag, const char *msg, va_list va) {
 	char *buffer;
-	FILE *out = stdout;
 	int length = 1024;
 	int n;
 	/*	if (lv < logger.cur_level)
@@ -110,11 +108,10 @@ static void format(enum Level lv, const char *tag, const char *msg, va_list va) 
 			if (n < length)
 				break;
 		}
-
-	if (lv >= ERROR)
-		out = stderr;
-
-	output(out, levels[lv], tag, buffer);
+	if (logger.console != NULL) {
+		logger.console = lv >= ERROR ? stderr : stdout;
+		output(logger.console, levels[lv], tag, buffer);
+	}
 	if (logger.of != NULL) {
 		if (log_file_size() > logger.max_length) {
 			update_log_file();
@@ -124,7 +121,7 @@ static void format(enum Level lv, const char *tag, const char *msg, va_list va) 
 	}
 	free(buffer);
 }
-
+/*extern int strcasecmp (const char *__s1, const char *__s2);*/
 enum Level str2level(const char *level) {
 	if (level == NULL)
 		return VERBOSE;
@@ -140,6 +137,7 @@ enum Level str2level(const char *level) {
 
 void log_init(enum Level lv, const char *file, size_t _max_length) {
 	logger.cur_level = lv;
+	logger.console = stdout;
 	if (file == NULL)
 		return;
 	logger.file_name = file;

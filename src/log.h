@@ -6,7 +6,7 @@
  */
 #ifndef LOG_H_
 #define LOG_H_
-
+#include <stdio.h>
 /**
  * 日志部分
  */
@@ -34,9 +34,9 @@ enum Level str2level(const char *level);
 /*
  * 默认开启控制台log，file设置为非NULL， 则开启同时将log输出只文件
  * @param file == NULL log不输出到文件
- *
+ * @param file == NULL 時 _max_length被忽略
  */
-void log_init(enum Level lv, const char *file, size_t max_len);
+void log_init(enum Level lv, const char *file, size_t _max_length);
 /*
  *
  * 2013-12-21 19:59:11  DEBUG   [main.c]	- FUCK (其中tag 为 main.c)
