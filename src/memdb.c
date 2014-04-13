@@ -27,10 +27,7 @@ struct memdb *memdb_new(size_t dbcnt) {
 
 /*
  *
- * 对于字符串类型 dict中存储k,V对应的地址
- *
- * 对于整形（包括int16, int32, int64：
- * 先放入对应的inset中 然后返回地址，再将地址作为V存储到dict
+ *  dict中存储k,V对应的地址
  *
  *
  *
