@@ -1,6 +1,6 @@
 /*
  ============================================================================
- Name        : ctest.c
+ Name        : main.c
  Author      :
  Version     :
  Copyright   : Your copyright notice
@@ -20,12 +20,10 @@
 		"                              ————苏轼\n"
 
 int main(void) {
+	log_init(DEBUG, NULL, 0);
 	puts(SERVER_LOGO);
-	log_debug("启动。。。。%s", "OK");
-	struct string *s = string_format("hello %s", "World!");
-	log_error(s->value);
-
-	struct epoll *ep = epoll_open(8010);
+	log_debug("启动。。。。");
+	struct epoll *ep = epoll_open(8014);
 	epoll_loop(ep);
 	epoll_close(ep);
 	puts("END");
