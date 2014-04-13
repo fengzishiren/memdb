@@ -78,7 +78,7 @@
 #define PRO_NULL_DATA "$-1\r\n"
 
 
-struct pro_args {
+struct command {
 	int argc;
 	char **argv;
 };
@@ -88,7 +88,7 @@ struct pro_args {
  * 解析成功返回新的struct pro_args * 出错返回NULL
  * 注意：释放free(struct pro_args *)
  */
-struct pro_args *parse_pro(char *data);
+struct command *parse_to_command(char *data);
 
 struct string *list_to_pro_string(struct list *ls);
 

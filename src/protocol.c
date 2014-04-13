@@ -16,8 +16,8 @@
  *
  */
 
-struct pro_args * parse_pro(char *data) {
-	struct pro_args *args = malloc(sizeof(struct pro_args));
+struct command * parse_to_command(char *data) {
+	struct command *args = malloc(sizeof(struct command));
 	char *p = data;
 	if (*p != '*')
 		goto err;
