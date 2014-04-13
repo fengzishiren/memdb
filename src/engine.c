@@ -37,6 +37,8 @@
 struct memdb memdb;
 struct memdb *db = &memdb;
 
+typedef void *cmd_func(int argc, char **argv);
+
 static void *ping_cmd(int argc, char **argv);
 static void *get_cmd(int argc, char **argv);
 static void *set_cmd(int argc, char **argv);
@@ -46,10 +48,10 @@ static void *decr_cmd(int argc, char **argv);
 static void *lpush_cmd(int argc, char **argv);
 static void *lindex_cmd(int argc, char **argv);
 
-static struct cmd_table {
+static struct cmd_func_table {
 	char *cmd;
 	cmd_func *func;
-	int argc;
+	int argc; /*用argc校验参数个数是否匹配*/
 } cmdtbl[] = { { "PING", ping_cmd, 1 }, { "GET", get_cmd, 2 }, { "SET", set_cmd,
 		3 }, { "DEL", del_cmd, 0 }, { "INCR", incr_cmd, 2 }, { "INCRBY",
 		incr_cmd, 3 }, { "DECR", decr_cmd, 2 }, { "DECRBY", incr_cmd, 3 }, {
@@ -182,7 +184,7 @@ static void *lindex_cmd(int argc, char **argv) {
  *
  */
 static int find_func_pos(const char *cmd, int argc) {
-	int count = sizeof(cmdtbl) / sizeof(struct cmd_table);
+	int count = sizeof(cmdtbl) / sizeof(struct cmd_func_table);
 	int i = 0;
 	for (i = 0; i < count; ++i) {
 		if (strcasecmp(cmdtbl[i].cmd, cmd) == 0) {
@@ -200,12 +202,12 @@ static int find_func_pos(const char *cmd, int argc) {
  * 需要free释放
  *
  */
-struct string *execute(int argc, char **argv) {
-	int pos = find_func_pos(argv[0], argc);
+struct string *execute(struct command *cmd) {
+	int pos = find_func_pos(cmd->argv[0], cmd->argc);
 	if (pos >= 0)
-		return cmdtbl[pos].func(argc, argv);
+		return cmdtbl[pos].func(cmd->argc, cmd->argv);
 	else if (pos == -1)
-		return string_format("-ERROR 不支持的命令 '%s'\r\n", argv[0]);
+		return string_format("-ERROR 不支持的命令 '%s'\r\n", cmd->argv[0]);
 	else
 		return string_new(PRO_ARG_ILLEGAL);
 }
