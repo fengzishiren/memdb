@@ -6,6 +6,7 @@
  */
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "memdb.h"
 #include "hashtable.h"
