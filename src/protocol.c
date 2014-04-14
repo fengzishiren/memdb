@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "log.h"
 #include "protocol.h"
 
 /*
@@ -17,18 +17,24 @@
  */
 
 struct command * parse_to_command(char *data) {
+	log_debug("正在解析协议数据。。。");
 	struct command *args = malloc(sizeof(struct command));
 	char *p = data;
-	if (*p != '*')
+
+	if (*p != '*') {
+		log_error("解析错误！未期待的'*'");
 		goto err;
+	}
 
 	while (*p) {
 		if (*p == '\r' && *(p + 1) == '\n')
 			break;
 		p++;
 	}
-	if (*p == '\0')
+	if (*p == '\0') {
+		log_error("解析错误！提前结束");
 		goto err;
+	}
 	*p = '\0';
 	p += 2;
 
@@ -40,16 +46,20 @@ struct command * parse_to_command(char *data) {
 	char *tok;
 	int i;
 	for (i = 0; (tok = strtok(p, "\r\n")); ++i) {
-		if (*tok != '$')
+		if (*tok != '$') {
+			log_error("解析错误！必须以$开头");
 			goto err;
+		}
 
 		int len = (int) strtol(tok + 1, NULL, 10);
 		tok = strtok(NULL, "\r\n");
 		if (tok == NULL || strlen(tok) != len)
 			goto err;
 
-		if (i >= args->argc)
+		if (i >= args->argc) {
+			log_error("解析错误！参数长度与实际不匹配");
 			goto err;
+		}
 
 		args->argv[i] = tok;
 
@@ -57,8 +67,10 @@ struct command * parse_to_command(char *data) {
 			p = NULL;
 	}
 
-	if (i != args->argc)
+	if (i != args->argc) {
+		log_error("解析错误！参数长度与实际不匹配");
 		goto err;
+	}
 
 	return args;
 
