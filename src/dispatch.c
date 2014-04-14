@@ -25,6 +25,31 @@ static long long get_curtime() {
 
 static struct packet pack_in = { .data = NULL }, pack_out = { .data = NULL };
 
+/*char buf[BUFSIZ];
+ n = 0;
+ while ((nread = read(fd, buf + n, BUFSIZ - 1)) > 0) {
+ n += nread;
+ }
+ if (nread == -1 && errno != EAGAIN) {
+ perror("read error");
+ }
+ buf[n] = '\0';
+ log_info("\n=========client:%d\n%s===========", fd, buf);
+
+ sprintf(buf, "server: OK\r\n");
+ int nwrite, data_size = strlen(buf);
+ n = data_size;
+ while (n > 0) {
+ nwrite = write(fd, buf + data_size - n, n);
+ if (nwrite < n) {
+ if (nwrite == -1 && errno != EAGAIN) {
+ perror("write error");
+ }
+ break;
+ }
+ n -= nwrite;
+ }
+ // close(fd);*/
 static struct packet *recv_packet(struct packet *pack) {
 	int len = 0, total = 0;
 	char *data;
@@ -39,7 +64,7 @@ static struct packet *recv_packet(struct packet *pack) {
 		} else
 			data += len;
 	}
-	data[total] = '\0';
+	pack->data->value[total] = '\0';
 	pack->data->length = total;
 
 	struct string *ps = string_escape(pack->data);
