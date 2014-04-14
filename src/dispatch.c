@@ -61,8 +61,9 @@ static struct packet *recv_packet(struct packet *pack) {
 		if (len == 1024) {
 			pack->data = string_expand(pack->data, pack->data->capacity + 1024);
 			data = pack->data->value + total;
-		} else
-			data += len;
+		}
+		/*else
+			data += len;*/
 	}
 	pack->data->value[total] = '\0';
 	pack->data->length = total;
