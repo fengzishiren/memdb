@@ -10,8 +10,8 @@
 /**
  * 日志部分
  */
-enum Level {
-	VERBOSE, DEBUG, INFO, WARN, ERROR, FATAL
+enum log_level {
+	VERBOSE, DEBUG, INFO, WARN, ERROR, FATAL, CLOSE
 };
 /**
  *
@@ -25,25 +25,26 @@ void panic(const char *err, ...);
  * Log基本操作
  *
  */
+char *level2str(enum log_level lv);
 /*
  *
  * 如果找不到对应的leve级别 则返回默认VERBOSE
  *
  */
-enum Level str2level(const char *level);
+enum log_level str2level(const char *level);
 /*
  * 默认开启控制台log，file设置为非NULL， 则开启同时将log输出只文件
  * @param file == NULL log不输出到文件
  * @param file == NULL 時 _max_length被忽略
  */
-void log_init(enum Level lv, const char *file, size_t _max_length);
+void log_init(enum log_level lv, const char *file, size_t _max_length);
 /*
  *
  * 2013-12-21 19:59:11  DEBUG   [main.c]	- FUCK (其中tag 为 main.c)
  * if (tag == NULL)
  * 	2013-12-21 19:59:11  DEBUG   	- fuck
  */
-void log_log(enum Level lv, const char *tag, const char *format, ...);
+void log_log(enum log_level lv, const char *tag, const char *format, ...);
 
 /*
  * @brief debug级的格式化log 等价于debug() + printf()

@@ -22,7 +22,7 @@ static char *levels[] = { "VERBOSE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL",
 NULL };
 
 static struct {
-	enum Level cur_level;
+	enum log_level cur_level;
 	const char *file_name;
 	FILE *console, *of;
 	size_t max_length;
@@ -69,7 +69,7 @@ static inline void output(FILE *out, const char *level, const char *tag,
 	fflush(out);
 }
 
-static void format(enum Level lv, const char *tag, const char *msg, va_list va) {
+static void format(enum log_level lv, const char *tag, const char *msg, va_list va) {
 	char *buffer;
 	int length = 1024;
 	int n;
@@ -122,7 +122,7 @@ static void format(enum Level lv, const char *tag, const char *msg, va_list va) 
 	free(buffer);
 }
 /*extern int strcasecmp (const char *__s1, const char *__s2);*/
-enum Level str2level(const char *level) {
+enum log_level str2level(const char *level) {
 	if (level == NULL)
 		return VERBOSE;
 	char **s = levels;
@@ -132,10 +132,14 @@ enum Level str2level(const char *level) {
 		else
 			break;
 	}
-	return *s == NULL ? VERBOSE : (enum Level) (s - 1 - levels);
+	return *s == NULL ? VERBOSE : (enum log_level) (s - 1 - levels);
 }
 
-void log_init(enum Level lv, const char *file, size_t _max_length) {
+char *level2str(enum log_level lv) {
+	return levels[lv];
+}
+
+void log_init(enum log_level lv, const char *file, size_t _max_length) {
 	logger.cur_level = lv;
 	logger.console = stdout;
 	if (file == NULL)
@@ -150,7 +154,7 @@ void log_init(enum Level lv, const char *file, size_t _max_length) {
 	}
 }
 
-void log_log(enum Level lv, const char *tag, const char *msg, ...) {
+void log_log(enum log_level lv, const char *tag, const char *msg, ...) {
 	if (lv < logger.cur_level)
 		return;
 	va_list va;
