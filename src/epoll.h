@@ -21,8 +21,8 @@ struct epoll {
 	int epfd;
 };
 
-struct epoll *epoll_open(int port);
-int epoll_loop(struct epoll *epoll);
-void epoll_close(struct epoll *epoll);
+struct epoll *open_epoll(int port);
+int start_epoll(struct epoll *epoll);
+void close_epoll(struct epoll *epoll);
 
 #endif /* EPOLL_H_ */

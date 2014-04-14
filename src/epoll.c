@@ -51,7 +51,7 @@ static inline void setnonblocking(int sfd) {
 	}
 }
 
-struct epoll *epoll_open(int port) {
+struct epoll *open_epoll(int port) {
 	struct epoll* epoll = malloc(sizeof(struct epoll));
 
 	if ((epoll->listenfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -85,7 +85,7 @@ struct epoll *epoll_open(int port) {
 	return epoll;
 
 }
-int epoll_loop(struct epoll *epoll) {
+int start_epoll(struct epoll *epoll) {
 	int addrlen, conn_sock, nfds, fd, i;
 
 	log_info("开始接收客户端请求。。。");
@@ -117,31 +117,6 @@ int epoll_loop(struct epoll *epoll) {
 				}
 			} else {
 				dispatch(fd);
-				/*char buf[BUFSIZ];
-				n = 0;
-				while ((nread = read(fd, buf + n, BUFSIZ - 1)) > 0) {
-					n += nread;
-				}
-				if (nread == -1 && errno != EAGAIN) {
-					perror("read error");
-				}
-				buf[n] = '\0';
-				log_info("\n=========client:%d\n%s===========", fd, buf);
-
-				sprintf(buf, "server: OK\r\n");
-				int nwrite, data_size = strlen(buf);
-				n = data_size;
-				while (n > 0) {
-					nwrite = write(fd, buf + data_size - n, n);
-					if (nwrite < n) {
-						if (nwrite == -1 && errno != EAGAIN) {
-							perror("write error");
-						}
-						break;
-					}
-					n -= nwrite;
-				}
-				// close(fd);*/
 			}
 
 		}
@@ -149,7 +124,7 @@ int epoll_loop(struct epoll *epoll) {
 
 	return 0;
 }
-void epoll_close(struct epoll *epoll) {
+void close_epoll(struct epoll *epoll) {
 	free(epoll);
 	log_debug("关闭epoll");
 }
