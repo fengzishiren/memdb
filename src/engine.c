@@ -13,6 +13,9 @@
 #include "memdb.h"
 #include "objs.h"
 #include "protocol.h"
+#include "env.h"
+
+#define db env.db
 /**
  *
  *
@@ -33,9 +36,6 @@
  *
  *
  */
-
-struct memdb memdb;
-struct memdb *db = &memdb;
 
 typedef void *cmd_func(int argc, char **argv);
 
