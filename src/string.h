@@ -50,7 +50,7 @@ struct string {
  * 等于或超过STRING_STACK_SIZE的字符串被截断为STRING_STACK_SIZE - 1
  *
  */
-struct string string_stack(const char *s);
+struct string string_stack_new(const char *s);
 
 struct string *string_new(const char *s);
 
@@ -71,7 +71,7 @@ struct string *string_format(const char *msg, ...);
  *
  * 注意释放返回的新川
  */
-struct string *string_escape(struct string *ss);
+struct string string_stack_escape(struct string *ss);
 
 static inline struct string *string_expand(struct string *ss, size_t new_cap) {
 	struct string *nss = realloc(ss, string_size + byte_size(new_cap, char));

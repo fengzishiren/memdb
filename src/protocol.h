@@ -71,7 +71,7 @@
 #define PRO_TYPE_ERROR "-WRONGTYPE %s\r\n"
 
 #define PRO_INTEGER_DATA ":%lld\r\n"
-#define PRO_STRING_DATA "$%d\r\n%s\rn"
+#define PRO_STRING_DATA "$%zu\r\n%s\r\n"
 
 #define PRO_ARG_ILLEGAL "-ERROR 命令参数不匹配\r\n"
 

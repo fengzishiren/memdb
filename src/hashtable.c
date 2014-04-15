@@ -8,8 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "memdb.h"
 #include "hashtable.h"
+#include "log.h"
 
 #define DEFAULT_CAPACITY 	16
 #define LOAD_FACTOR 		0.75
@@ -76,19 +77,48 @@ static inline void add_pair(struct hashtable *hashtable, int hashcode,
 	}
 }
 
+
+void hashtable_each(struct hashtable *hashtable,
+		void (*handle_kv)(void *key, void *val)) {
+	struct pair **old_table = hashtable->table;
+	int i, old_capacity = hashtable->capacity;
+
+	for (i = 0; i < old_capacity; ++i) {
+		struct pair *p = old_table[i];
+		while (p != NULL) {
+			struct pair *next = p->next;
+			handle_kv(p->key, p->val);
+			p = next;
+		}
+	}
+}
+
+static void kvprintf(void *key, void *v) {
+	printf("----------------------key %s, val %s\n", (char *)key , ((struct object *)v)->val.add);
+
+}
+
 void hashtable_put(struct hashtable *hashtable, void *key, void *val) {
 
 	int hashcode = hashtable->hash_fuc(key);
 	size_t pos = index_for(hashcode, hashtable->capacity);
-
+	log_debug("SET 定位pos %zu", pos);
+	log_debug("SET KEY %s", (const char *)key);
 	struct pair *p;
+	hashtable_each(hashtable, kvprintf);
+	printf("NULL ? %d\n", hashtable->table[pos] == NULL);
 	for (p = hashtable->table[pos]; p != NULL; p = p->next) {
+		log_debug("IS Conficlet!!! %s, val %s\n", (char *) key,
+				((struct object *) val)->val.add);
 		if (p->hashcode == hashcode && hashtable->cmp_fuc(p->key, key) == 0) {
 			p->val = val;
 			return;
 		}
 	}
+	log_debug("Create !!! %s, val %s\n", (char *)key , ((struct object *)val)->val.add);
+
 	add_pair(hashtable, hashcode, key, val, pos);
+
 }
 
 void *hashtable_get(struct hashtable *hashtable, void *key) {
@@ -97,8 +127,11 @@ void *hashtable_get(struct hashtable *hashtable, void *key) {
 	int hashcode = hashtable->hash_fuc(key);
 	size_t pos = index_for(hashcode, hashtable->capacity);
 
+	log_debug("GET 定位pos %zu", pos);
 	struct pair *p;
+	hashtable_each(hashtable, kvprintf);
 	for (p = hashtable->table[pos]; p != NULL; p = p->next) {
+		log_debug("p->key %s len %zu key %s len %zu ", (const char *)p->key, strlen(p->key), (const char *)key, strlen(key));
 		if (p->hashcode == hashcode && hashtable->cmp_fuc(p->key, key) == 0) {
 			return p->val;
 		}
@@ -127,20 +160,6 @@ void *hashtable_remove(struct hashtable *hashtable, void *key) {
 	return rm;
 }
 
-void hashtable_each(struct hashtable *hashtable,
-		void (*handle_kv)(void *key, void *val)) {
-	struct pair **old_table = hashtable->table;
-	int i, old_capacity = hashtable->capacity;
-
-	for (i = 0; i < old_capacity; ++i) {
-		struct pair *p = old_table[i];
-		while (p != NULL) {
-			struct pair *next = p->next;
-			handle_kv(p->key, p->val);
-			p = next;
-		}
-	}
-}
 
 struct hashtable *hashtable_clear(struct hashtable *hashtable) {
 	int i;

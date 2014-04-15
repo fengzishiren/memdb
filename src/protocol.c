@@ -93,7 +93,7 @@ struct string *list_to_pro_string(struct list *ls) {
 	char buf[20];
 
 	struct string *s = string_new(PRO_MULTI);
-	sprintf(buf, "%lu", (ls->size));
+	sprintf(buf, "%zu", (ls->size));
 	s = string_concat(s, buf);
 	s = string_concat(s, PRO_NEW_LINE);
 
@@ -103,7 +103,7 @@ struct string *list_to_pro_string(struct list *ls) {
 	while ((e = list_next(&it)) != NULL) {
 		char *item = (char *) e->data;
 		s = string_concat(s, PRO_BULK);
-		sprintf(buf, "%lu", strlen(item));
+		sprintf(buf, "%zu", strlen(item));
 		s = string_concat(s, buf);
 		s = string_concat(s, PRO_NEW_LINE);
 		s = string_concat(s, item);
@@ -122,8 +122,7 @@ struct string *object_to_pro_string(struct object *o) {
 	case STRING:
 		/*$6\r\nfoobar\r\n"*/
 		/*char *s = (const char *) o->val.add;*/
-		str = string_format(PRO_STRING_DATA,
-				(int) strlen((const char *) o->val.add),
+		str = string_format(PRO_STRING_DATA, strlen((const char *) o->val.add),
 				(const char *) o->val.add);
 		break;
 	case LIST:

@@ -13,7 +13,7 @@ static inline struct string *string_init(const char *s, size_t len) {
 	return ss;
 }
 
-struct string string_stack(const char *s) {
+struct string string_stack_new(const char *s) {
 	struct string ss;
 	int len = strlen(s);
 
@@ -181,6 +181,7 @@ static struct string *string_cat(struct string *ss, const char *src, size_t len)
 
  二位十六进制
  */
+/*
 struct string *string_escape(struct string *ss) {
 	struct string *nss = string_alloc(ss->length * 2 + 1);
 	int i, j = 0;
@@ -203,6 +204,29 @@ struct string *string_escape(struct string *ss) {
 	nss->value[j] = '\0';
 	return nss;
 
+
+}*/
+struct string string_stack_escape(struct string *ss) {
+	struct string stack = string_stack_new("");
+	int i, j = 0;
+	char ec;
+	for (i = 0; j < STRING_STACK_SIZE - 1 && i < ss->length; ++i, ++j) {
+		ec = ss->value[i];
+		switch (ec) {
+		case '\r':
+			stack.value[j++] = '\\';
+			stack.value[j] = 'r';
+			break;
+		case '\n':
+			stack.value[j++] = '\\';
+			stack.value[j] = 'n';
+			break;
+		default:
+			stack.value[j] = ec;
+		}
+	}
+	stack.value[j] = '\0';
+	return stack;
 }
 
 struct string *string_concat(struct string *ss, const char *src) {
