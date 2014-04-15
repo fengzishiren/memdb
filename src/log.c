@@ -127,7 +127,7 @@ enum log_level str2level(const char *level) {
 		return VERBOSE;
 	char **s = levels;
 	while (*s) {
-		if (strcasecmp(level, *s++) != 0)
+		if (strcmp(level, *s++) != 0)
 			continue;
 		else
 			break;
