@@ -40,7 +40,7 @@ struct memdb {
 
 struct memdb *memdb_new(size_t dbcnt);
 
-void memdb_set(struct memdb *db, char *key, struct object *val);
+void *memdb_set(struct memdb *db, char *key, struct object *val);
 
 struct object *memdb_get(struct memdb *db, char *key);
 

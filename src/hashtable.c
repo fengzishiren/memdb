@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "string.h"
 #include "memdb.h"
 #include "hashtable.h"
 #include "log.h"
@@ -77,7 +79,6 @@ static inline void add_pair(struct hashtable *hashtable, int hashcode,
 	}
 }
 
-
 void hashtable_each(struct hashtable *hashtable,
 		void (*handle_kv)(void *key, void *val)) {
 	struct pair **old_table = hashtable->table;
@@ -94,30 +95,36 @@ void hashtable_each(struct hashtable *hashtable,
 }
 
 static void kvprintf(void *key, void *v) {
-	printf("----------------------key %s, val %s\n", (char *)key , ((struct object *)v)->val.add);
+	struct string s = string_stack_new((char *) key);
+	printf("----------------------key %s, val %s\n",
+			 string_stack_escape(&s).value,((struct object *) v)->val.add);
 
 }
 
-void hashtable_put(struct hashtable *hashtable, void *key, void *val) {
+void *hashtable_put(struct hashtable *hashtable, void *key, void *val) {
 
+	void *ret = NULL;
 	int hashcode = hashtable->hash_fuc(key);
 	size_t pos = index_for(hashcode, hashtable->capacity);
 	log_debug("SET 定位pos %zu", pos);
-	log_debug("SET KEY %s", (const char *)key);
+	log_debug("SET KEY %s", (const char *) key);
 	struct pair *p;
 	hashtable_each(hashtable, kvprintf);
 	printf("NULL ? %d\n", hashtable->table[pos] == NULL);
 	for (p = hashtable->table[pos]; p != NULL; p = p->next) {
-		log_debug("IS Conficlet!!! %s, val %s\n", (char *) key,
-				((struct object *) val)->val.add);
+		log_debug("IS Conficlet!!! ");
 		if (p->hashcode == hashcode && hashtable->cmp_fuc(p->key, key) == 0) {
+			ret = p->val;
 			p->val = val;
-			return;
+			return ret;
 		}
 	}
-	log_debug("Create !!! %s, val %s\n", (char *)key , ((struct object *)val)->val.add);
+	struct string s = string_stack_new((char *) key);
+	log_debug("Create !!! %s, val %s", string_stack_escape(&s).value,
+			((struct object *) val)->val.add);
 
 	add_pair(hashtable, hashcode, key, val, pos);
+	return ret;
 
 }
 
@@ -131,7 +138,9 @@ void *hashtable_get(struct hashtable *hashtable, void *key) {
 	struct pair *p;
 	hashtable_each(hashtable, kvprintf);
 	for (p = hashtable->table[pos]; p != NULL; p = p->next) {
-		log_debug("p->key %s len %zu key %s len %zu ", (const char *)p->key, strlen(p->key), (const char *)key, strlen(key));
+		struct string s = string_stack_new((char *) key);
+		log_debug("p->key %s len %zu key %s len %zu ", string_stack_escape(&s).value, strlen(p->key),
+				(const char *) key, strlen(key));
 		if (p->hashcode == hashcode && hashtable->cmp_fuc(p->key, key) == 0) {
 			return p->val;
 		}
@@ -159,7 +168,6 @@ void *hashtable_remove(struct hashtable *hashtable, void *key) {
 	}
 	return rm;
 }
-
 
 struct hashtable *hashtable_clear(struct hashtable *hashtable) {
 	int i;

@@ -34,7 +34,7 @@ struct hashtable {
 extern struct hashtable *hashtable_init(struct hashtable *hashtable,
 		hash hash_fuc, cmp cmp_fuc);
 
-extern void hashtable_put(struct hashtable *hashtable, void *key, void *val);
+extern void *hashtable_put(struct hashtable *hashtable, void *key, void *val);
 
 extern void *hashtable_get(struct hashtable *hashtable, void *key);
 

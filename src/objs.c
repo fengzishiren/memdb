@@ -61,10 +61,9 @@ void delete_object(struct object *o) {
 
 char *str_to_str(char *str) {
 	size_t len = strlen(str);
-	char *des = malloc(len);
+	char *des = malloc(len + 1);
 	memcpy(des, str, len);
 	des[len] = '\0';
-	printf("WARNING %s len %d\n", des, strlen(des));
 	return des;
 }
 /*

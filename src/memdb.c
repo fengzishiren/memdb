@@ -35,8 +35,8 @@ struct memdb *memdb_new(size_t dbcnt) {
  *
  */
 
-void memdb_set(struct memdb *db, char *key, struct object *val) {
-	hashtable_put(db->dict[db->idx], key, (void *) val);
+void *memdb_set(struct memdb *db, char *key, struct object *val) {
+	return hashtable_put(db->dict[db->idx], key, (void *) val);
 }
 
 struct object *memdb_get(struct memdb *db, char *key) {

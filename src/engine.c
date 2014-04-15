@@ -63,6 +63,8 @@ static void *ping_cmd(int argc, char **argv) {
 }
 
 static void *get_cmd(int argc, char **argv) {
+	log_debug("get_cmd KEY %s", argv[1]);
+
 	struct object *o = memdb_get(db, argv[1]);
 	if (o == NULL) {
 		return string_new(PRO_NULL_DATA);
@@ -73,13 +75,17 @@ static void *get_cmd(int argc, char **argv) {
 }
 
 static void *set_cmd(int argc, char **argv) {
-	struct object *o = memdb_del(db, argv[1]);
+	log_debug("set_cmd KEY %s", argv[1]);
+
+	struct object *o;
+	char *str = str_to_str(argv[2]);
+	log_info("新构造的字符串：%s", str);
+	o = create_object(str, STRING);
+	o = memdb_set(db, argv[1], o);
+	log_info("SET o == %s", o == NULL ? "NULL" : "Not NULL");
 	if (o) {
 		delete_object(o);
 	}
-	char *str = str_to_str(argv[2]);
-	o = create_object(str, STRING);
-	memdb_set(db, argv[1], o);
 	return string_new(PRO_OK);
 }
 /*
@@ -102,9 +108,7 @@ static void *del_cmd(int argc, char **argv) {
 
 static void *incr_cmd(int argc, char **argv) {
 
-	log_debug("incr_cmd %d", strcmp(argv[1], "name"));
-
-	return get_cmd(argc, argv);
+	log_debug("incr_cmd KEY %s", argv[1]);
 
 	struct object *o = memdb_get(db, argv[1]);
 	if (o == NULL) {
