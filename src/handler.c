@@ -21,9 +21,9 @@ void handle(struct packet *req, struct packet *resp) {
 	 */
 
 	struct command *cmd;
-	struct string *ps = string_escape(req->data);
-	log_debug("待解析数据：%s", ps->value);
-	free(ps);
+	struct string ps = string_stack_escape(req->data);
+	log_debug("待解析数据：%s", ps.value);
+
 	if ((cmd = parse_to_command(req->data->value)) == NULL) {
 		log_error("协议解析出错");
 		resp->data = string_new("-ERROR 协议错误！");
