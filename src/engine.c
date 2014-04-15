@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include "engine.h"
 #include "list.h"
@@ -72,8 +73,12 @@ static void *get_cmd(int argc, char **argv) {
 }
 
 static void *set_cmd(int argc, char **argv) {
+	struct object *o = memdb_del(db, argv[1]);
+	if (o) {
+		delete_object(o);
+	}
 	char *str = str_to_str(argv[2]);
-	struct object *o = create_object(str, STRING);
+	o = create_object(str, STRING);
 	memdb_set(db, argv[1], o);
 	return string_new(PRO_OK);
 }
@@ -96,14 +101,25 @@ static void *del_cmd(int argc, char **argv) {
 }
 
 static void *incr_cmd(int argc, char **argv) {
+
+	log_debug("incr_cmd %d", strcmp(argv[1], "name"));
+
+	return get_cmd(argc, argv);
+
 	struct object *o = memdb_get(db, argv[1]);
+	if (o == NULL) {
+		log_error("o == NULL");
+		return string_new(PRO_NULL_DATA);
+	}
+
 	if (o->ot == INT) {
 		o->val.num++;
 	} else if (o->ot == STRING) {
+		log_debug("STRING");
 		char *stat = 0;
 		int_t n = (int_t) strtol((const char *) o->val.add, &stat, 10);
 		if (stat) {
-			string_new(PRO_ARG_ILLEGAL);
+			return string_new(PRO_ARG_ILLEGAL);
 		}
 		free(o->val.add);
 		o->ot = INT;
@@ -122,7 +138,7 @@ static void *decr_cmd(int argc, char **argv) {
 		char *stat = 0;
 		int_t n = (int_t) strtol((const char *) o->val.add, &stat, 10);
 		if (stat) {
-			string_new(PRO_ARG_ILLEGAL);
+			return string_new(PRO_ARG_ILLEGAL);
 		}
 		free(o->val.add);
 		o->ot = INT;
