@@ -40,5 +40,6 @@ void handle(struct packet *req, struct packet *resp) {
 	}
 	resp->data = execute(cmd);
 
+	free(cmd->argv);
 	free(cmd);
 }
