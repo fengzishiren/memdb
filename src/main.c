@@ -47,7 +47,7 @@ int main(void) {
 
 	log_debug("启动。。。");
 
-	struct epoll *ep = open_epoll(4434);
+	struct epoll *ep = open_epoll(4222);
 	start_epoll(ep);
 	close_epoll(ep);
 
