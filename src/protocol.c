@@ -37,7 +37,10 @@ struct command * parse_to_command(char *data) {
 	}
 	*p = '\0';
 	p += 2;
-
+	if (*p == '\0') {
+		log_error("解析错误！提前结束");
+		goto err;
+	}
 	args->argc = (int) strtol(data + 1, NULL, 10);
 	if (args->argc < 1)
 		goto err;
@@ -74,7 +77,10 @@ struct command * parse_to_command(char *data) {
 
 	return args;
 
-	err: return NULL;
+	err:
+	free(args->argv);
+	free(args);
+	return NULL;
 }
 
 /*
@@ -115,9 +121,12 @@ struct string *list_to_pro_string(struct list *ls) {
 struct string *object_to_pro_string(struct object *o) {
 
 	struct string *str = NULL;
+	char buf[20];
+
 	switch (o->ot) {
 	case INT:
-		str = string_format(PRO_INTEGER_DATA, (long long int) o->val.num);
+		sprintf(buf, "%lld", (long long int) o->val.num);
+		str = string_format(PRO_STRING_DATA, strlen(buf), buf);
 		break;
 	case STRING:
 		/*$6\r\nfoobar\r\n"*/

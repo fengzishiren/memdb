@@ -34,11 +34,7 @@ struct string *string_new(const char *s) {
 struct string *string_alloc(size_t nbytes) {
 	struct string *ss = string_expand(NULL,
 			nbytes ? nbytes : STRING_DEFAULT_CAPACITY);
-
-	ss->length = 0;
-	ss->value[0] = '\0';
-	ss->hash = 0;
-	return ss;
+	return string_clear(ss);
 }
 
 struct string *string_format(const char *msg, ...) {
@@ -78,6 +74,14 @@ struct string *string_format(const char *msg, ...) {
 
 struct string *string_dup(struct string *ss) {
 	return string_init(ss->value, ss->length);
+}
+
+
+struct string *string_clear(struct string *ss) {
+	memset(ss->value, 0, ss->capacity);
+	ss->length = 0;
+	ss->hash = 0;
+	return ss;
 }
 
 int string_hashcode(struct string *ss) {

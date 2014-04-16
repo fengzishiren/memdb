@@ -89,12 +89,7 @@ static inline char *string_cstr(struct string *ss) {
 	return ss->value;
 }
 
-static inline struct string *string_clear(struct string *ss) {
-	ss->value[0] = '\0';
-	ss->length = 0;
-	ss->hash = 0;
-	return ss;
-}
+struct string *string_clear(struct string *ss);
 
 int string_hashcode(struct string *ss);
 
