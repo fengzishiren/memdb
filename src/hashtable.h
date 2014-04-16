@@ -15,12 +15,12 @@
 
 struct pair {
 	int hashcode;
-	void *key;
+	char *key;
 	void *val;
 	struct pair *next;
 };
 
-typedef int hash(void *key);
+typedef int hash(char *key);
 typedef int cmp(const void *, const void *);
 
 struct hashtable {
@@ -34,11 +34,11 @@ struct hashtable {
 extern struct hashtable *hashtable_init(struct hashtable *hashtable,
 		hash hash_fuc, cmp cmp_fuc);
 
-extern void *hashtable_put(struct hashtable *hashtable, void *key, void *val);
+extern void *hashtable_put(struct hashtable *hashtable, char *key, void *val);
 
-extern void *hashtable_get(struct hashtable *hashtable, void *key);
+extern void *hashtable_get(struct hashtable *hashtable, char *key);
 
-extern void *hashtable_remove(struct hashtable *hashtable, void *key);
+extern void *hashtable_remove(struct hashtable *hashtable, char *key);
 
 extern struct hashtable *hashtable_clear(struct hashtable *hashtable);
 
