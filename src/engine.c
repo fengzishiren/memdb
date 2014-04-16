@@ -63,8 +63,6 @@ static void *ping_cmd(int argc, char **argv) {
 }
 
 static void *get_cmd(int argc, char **argv) {
-	log_debug("get_cmd KEY %s", argv[1]);
-
 	struct object *o = memdb_get(db, argv[1]);
 	if (o == NULL) {
 		return string_new(PRO_NULL_DATA);
@@ -75,14 +73,10 @@ static void *get_cmd(int argc, char **argv) {
 }
 
 static void *set_cmd(int argc, char **argv) {
-	log_debug("set_cmd KEY %s", argv[1]);
-
 	struct object *o;
 	char *str = str_to_str(argv[2]);
-	log_info("新构造的字符串：%s", str);
 	o = create_object(str, STRING);
 	o = memdb_set(db, argv[1], o);
-	log_info("SET o == %s", o == NULL ? "NULL" : "Not NULL");
 	if (o) {
 		delete_object(o);
 	}
@@ -107,42 +101,45 @@ static void *del_cmd(int argc, char **argv) {
 }
 
 static void *incr_cmd(int argc, char **argv) {
-
-	log_debug("incr_cmd KEY %s", argv[1]);
-
+	char *stat = 0;
 	struct object *o = memdb_get(db, argv[1]);
 	if (o == NULL) {
-		log_error("o == NULL");
-		return string_new(PRO_NULL_DATA);
-	}
-
-	if (o->ot == INT) {
+		int_t n = (int_t) 1;
+		o = create_object(&n, INT);
+		memdb_set(db, argv[1], o);
+		return string_format(PRO_INTEGER_DATA, o->val.num);
+	} else if (o->ot == INT) {
 		o->val.num++;
+		return string_format(PRO_INTEGER_DATA, o->val.num);
 	} else if (o->ot == STRING) {
-		log_debug("STRING");
-		char *stat = 0;
 		int_t n = (int_t) strtol((const char *) o->val.add, &stat, 10);
-		if (stat) {
-			return string_new(PRO_ARG_ILLEGAL);
+		if (*stat != '\0') {
+			return string_format(PRO_ERROR_DATA, "无法将字符串转换为整形");
 		}
 		free(o->val.add);
 		o->ot = INT;
 		o->val.num = n + 1;
 		return string_format(PRO_INTEGER_DATA, o->val.num);
-	}
-	return string_format(PRO_TYPE_ERROR, argv[1]);
+	} else
+		return string_format(PRO_TYPE_ERROR, argv[1]);
 
 }
 
 static void *decr_cmd(int argc, char **argv) {
 	struct object *o = memdb_get(db, argv[1]);
-	if (o->ot == INT) {
-		o->val.num++;
+	if (o == NULL) {
+		int_t n = (int_t) -1;
+		o = create_object(&n, INT);
+		memdb_set(db, argv[1], o);
+		return string_format(PRO_INTEGER_DATA, o->val.num);
+	} else if (o->ot == INT) {
+		o->val.num--;
+		return string_format(PRO_INTEGER_DATA, o->val.num);
 	} else if (o->ot == STRING) {
 		char *stat = 0;
 		int_t n = (int_t) strtol((const char *) o->val.add, &stat, 10);
-		if (stat) {
-			return string_new(PRO_ARG_ILLEGAL);
+		if (*stat != '\0') {
+			return string_format(PRO_ERROR_DATA, "无法将字符串转换为整形");
 		}
 		free(o->val.add);
 		o->ot = INT;
@@ -208,7 +205,7 @@ static int find_func_pos(const char *cmd, int argc) {
 	int i = 0;
 	for (i = 0; i < count; ++i) {
 		if (strcasecmp(cmdtbl[i].cmd, cmd) == 0) {
-			return (argc == 0 || cmdtbl[i].argc == argc) ? i : -2;
+			return (cmdtbl[i].argc == 0 || cmdtbl[i].argc == argc) ? i : -2;
 		}
 	}
 	return -1;
