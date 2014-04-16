@@ -8,6 +8,8 @@
 
 #include <unistd.h>
 #include <sys/time.h>
+#include <errno.h>
+#include <string.h>
 
 #include "string.h"
 #include "handler.h"
@@ -38,7 +40,15 @@ static struct packet *recv_packet(struct packet *pack) {
 			data = pack->data->value + total;
 		}
 		/*else
-			data += len;*/
+		 data += len;*/
+	}
+	if (len == -1 && total == 0) {
+		log_error("send_packet: write error! %s", strerror(errno));
+		return NULL;
+	} else if (len == 0 && total == 0) {
+		log_info("客户端断开连接! %s", strerror(errno));
+		close(fd);
+		return NULL;
 	}
 	pack->data->value[total] = '\0';
 	pack->data->length = total;
@@ -65,9 +75,7 @@ static void send_packet(struct packet *pack) {
 static struct packet *get_recv_pack(int fd) {
 	pack_in.fd = fd;
 	pack_in.curtime = get_curtime();
-	if (pack_in.data == NULL) {
-		pack_in.data = string_alloc(1025);
-	}
+	pack_in.data = string_alloc(1024);
 	return recv_packet(&pack_in);
 }
 
@@ -78,21 +86,22 @@ static inline struct packet *get_send_pack(int fd) {
 }
 
 static inline void recycle_packet() {
-	/*string_free(pack_in.data);*/
-	string_free(pack_out.data);
-}
-static inline void destory_packet() {
 	string_free(pack_in.data);
 	string_free(pack_out.data);
 }
 
 int dispatch(int fd) {
 
+	log_debug("client fd:%d", fd);
 	if (fd == -1) {
-		destory_packet();
+		recycle_packet();
 		return -1;
 	}
 	struct packet *pack_recv = get_recv_pack(fd);
+
+	if (pack_recv == NULL)
+		return -1;
+
 	struct packet *pack_send = get_send_pack(fd);
 
 	handle(pack_recv, pack_send);
