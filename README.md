@@ -1,7 +1,9 @@
-memdb NOSQL
+使用C99实现的简单NoSql
+目前支持字符串、整形、列表的写入、存取和删除操作
 =====
 
-使用redis协议实现的NoSQL
+协议：redis协议
+
 语言：C99
 
 目前支持操作：GET、SET、INCR、DECR、LPUSH、LINDEX、LRANGE
