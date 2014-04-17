@@ -48,6 +48,7 @@ static void *incr_cmd(int argc, char **argv);
 static void *decr_cmd(int argc, char **argv);
 static void *lpush_cmd(int argc, char **argv);
 static void *lindex_cmd(int argc, char **argv);
+static void *lrange_cmd(int argc, char **argv);
 
 static struct cmd_func_table {
 	char *cmd;
@@ -56,7 +57,8 @@ static struct cmd_func_table {
 } cmdtbl[] = { { "PING", ping_cmd, 1 }, { "GET", get_cmd, 2 }, { "SET", set_cmd,
 		3 }, { "DEL", del_cmd, 0 }, { "INCR", incr_cmd, 2 }, { "INCRBY",
 		incr_cmd, 3 }, { "DECR", decr_cmd, 2 }, { "DECRBY", incr_cmd, 3 }, {
-		"LPUSH", lpush_cmd, 0 }, { "LINDEX", lindex_cmd, 3 } };
+		"LPUSH", lpush_cmd, 0 }, { "LINDEX", lindex_cmd, 3 }, { "LRANGE",
+		lrange_cmd, 4 } };
 
 static void *ping_cmd(int argc, char **argv) {
 	return string_new(PRO_PONG);
@@ -66,17 +68,19 @@ static void *get_cmd(int argc, char **argv) {
 	struct object *o = memdb_get(db, argv[1]);
 	if (o == NULL) {
 		return string_new(PRO_NULL_DATA);
-	} else if (o->ot == INT || o->ot == STRING)
-		return object_to_pro_string(o);
+	} else if (o->ot == INT)
+		return integer_to_pro_string(o);
+	else if (o->ot == STRING)
+		return string_to_pro_string(o);
 	else
 		return string_format(PRO_TYPE_ERROR, argv[1]);
 }
 
 static void *set_cmd(int argc, char **argv) {
 	struct object *o;
-	char *str = str_to_str(argv[2]);
+	char *str = str_clone(argv[2]);
 	o = create_object(str, STRING);
-	o = memdb_set(db, argv[1], o);
+	o = memdb_set(db, str_clone(argv[1]), o);
 	if (o) {
 		delete_object(o);
 	}
@@ -106,7 +110,7 @@ static void *incr_cmd(int argc, char **argv) {
 	if (o == NULL) {
 		int_t n = (int_t) 1;
 		o = create_object(&n, INT);
-		memdb_set(db, argv[1], o);
+		memdb_set(db, str_clone(argv[1]), o);
 		return string_format(PRO_INTEGER_DATA, o->val.num);
 	} else if (o->ot == INT) {
 		o->val.num++;
@@ -130,20 +134,28 @@ static void *decr_cmd(int argc, char **argv) {
 	if (o == NULL) {
 		int_t n = (int_t) -1;
 		o = create_object(&n, INT);
-		memdb_set(db, argv[1], o);
+
+		memdb_set(db, str_clone(argv[1]), o);
+
 		return string_format(PRO_INTEGER_DATA, o->val.num);
+
 	} else if (o->ot == INT) {
 		o->val.num--;
+
 		return string_format(PRO_INTEGER_DATA, o->val.num);
+
 	} else if (o->ot == STRING) {
 		char *stat = 0;
+
 		int_t n = (int_t) strtol((const char *) o->val.add, &stat, 10);
 		if (*stat != '\0') {
 			return string_format(PRO_ERROR_DATA, "无法将字符串转换为整形");
 		}
 		free(o->val.add);
+
 		o->ot = INT;
 		o->val.num = n - 1;
+
 		return string_format(PRO_INTEGER_DATA, o->val.num);
 	}
 	return string_format(PRO_TYPE_ERROR, argv[1]);
@@ -159,16 +171,22 @@ static void *lpush_cmd(int argc, char **argv) {
 	struct object *o = memdb_get(db, argv[1]);
 
 	if (o == NULL) {
-		/*create list*/
-		ls = strs_to_list(NULL, argc - 1, (argv + 1));
-		/*strs2list(NULL, argc) ;*/
+		/* argc - 2:
+		 * argv + 2:
+		 * lpush name xx xx xx*/
+		ls = strs_fill_list(NULL, argc - 2, argv + 2);
 		o = create_object(ls, LIST);
-		memdb_set(db, argv[1], o);
+
+		memdb_set(db, str_clone(argv[1]), o);
+
 		return string_format(PRO_INTEGER_DATA, (long long int) ls->size);
+
 	} else if (o->ot == LIST) {
 		ls = (struct list *) o->val.add;
-		strs_to_list(ls, argc - 1, argv + 1);
+		strs_fill_list(ls, argc - 1, argv + 1);
+
 		return string_format(PRO_INTEGER_DATA, (long long int) ls->size);
+
 	}
 	return string_format(PRO_TYPE_ERROR, argv[1]);
 }
@@ -181,17 +199,46 @@ static void *lindex_cmd(int argc, char **argv) {
 	} else if (o->ot != LIST) {
 		return string_format(PRO_TYPE_ERROR, argv[1]);
 	} else {
+		char *e, *stat = NULL;
 		struct list *ls = (struct list *) o->val.add;
-		char *stat = NULL;
+
 		long int idx = strtol(argv[2], &stat, 10);
-		if (stat || idx < 0)
+		if (*stat)
 			return string_new(PRO_ARG_ILLEGAL);
-		size_t pos = (size_t) idx;
-		char *e = (char *) list_get(ls, pos);
+		idx = (idx < 0) ? ls->size + idx : idx;
+
+		e = list_get(ls, (size_t) idx);
+
 		return (e == NULL) ?
 				string_new(PRO_NULL_DATA) :
 				string_format(PRO_STRING_DATA, (int) strlen(e), e);
 
+	}
+}
+
+static void *lrange_cmd(int argc, char **argv) {
+	struct object *o = memdb_get(db, argv[1]);
+
+	if (o == NULL) {
+		return string_new(PRO_NULL_DATA);
+	} else if (o->ot != LIST) {
+		return string_format(PRO_TYPE_ERROR, argv[1]);
+	} else {
+		char *stat = NULL;
+		struct list *ls = (struct list *) o->val.add;
+
+		long int start_idx = strtol(argv[2], &stat, 10);
+		if (*stat)
+			return string_new(PRO_ARG_ILLEGAL);
+		start_idx = (start_idx < 0) ? ls->size + start_idx : start_idx;
+
+		stat = NULL;
+		long int end_idx = strtol(argv[3], &stat, 10);
+		if (*stat)
+			return string_new(PRO_ARG_ILLEGAL);
+		end_idx = (end_idx < 0) ? ls->size + end_idx : end_idx;
+
+		return list_to_pro_string(ls, (size_t) start_idx, (size_t) end_idx);
 	}
 }
 /*
@@ -201,8 +248,7 @@ static void *lindex_cmd(int argc, char **argv) {
  *
  */
 static int find_func_pos(const char *cmd, int argc) {
-	int count = sizeof(cmdtbl) / sizeof(struct cmd_func_table);
-	int i = 0;
+	int i, count = sizeof(cmdtbl) / sizeof(struct cmd_func_table);
 	for (i = 0; i < count; ++i) {
 		if (strcasecmp(cmdtbl[i].cmd, cmd) == 0) {
 			return (cmdtbl[i].argc == 0 || cmdtbl[i].argc == argc) ? i : -2;
@@ -221,6 +267,7 @@ static int find_func_pos(const char *cmd, int argc) {
  */
 struct string *execute(struct command *cmd) {
 	int pos = find_func_pos(cmd->argv[0], cmd->argc);
+
 	if (pos >= 0)
 		return cmdtbl[pos].func(cmd->argc, cmd->argv);
 	else if (pos == -1)
