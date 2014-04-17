@@ -35,7 +35,7 @@ struct object {
 struct memdb {
 	size_t count;
 	size_t idx;
-	struct hashtable **dict;
+	struct  dict **dict;
 };
 
 struct memdb *memdb_new(size_t dbcnt);
