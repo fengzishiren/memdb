@@ -31,7 +31,7 @@ static void init_environ() {
 		puts("警告！未开启日志功能");
 	} else {
 		log_init(env.lv, NULL, 0);
-		printf("开启日志功能 级别 %s\n", level2str(env.lv));
+		printf("开启日志功能 级别:%s\n", level2str(env.lv));
 	}
 	env.db = memdb_new(env.dbcnt);
 	printf("使用数据库数目:%zu\n", env.dbcnt);
@@ -47,7 +47,7 @@ int main(void) {
 
 	log_debug("启动。。。");
 
-	struct epoll *ep = open_epoll(6666);
+	struct epoll *ep = open_epoll(4321);
 	start_epoll(ep);
 	close_epoll(ep);
 
