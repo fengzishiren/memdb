@@ -169,7 +169,7 @@ void list_free(struct list *list, int del_data) {
 }
 
 struct list_iter *list_iter(struct list *list, struct list_iter *it) {
-	it->next = list->head;
+	it->next = list->head->next;/*note:head->data = NULL*/
 	it->cursor = 0;
 	it->size = list->size;
 	return it;
