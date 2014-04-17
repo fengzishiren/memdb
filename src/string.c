@@ -230,6 +230,7 @@ struct string string_stack_escape(struct string *ss) {
 		}
 	}
 	stack.value[j] = '\0';
+	stack.length = j;
 	return stack;
 }
 
