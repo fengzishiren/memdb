@@ -12,9 +12,9 @@
 #define OBJS_H_
 
 struct object *create_object(void *val, enum object_type ot);
-char *str_to_str(char *str);
+char *str_clone(char *str);
 
-struct list *strs_to_list(struct list *ls,  int n, char **strs);
+struct list *strs_fill_list(struct list *ls,  int n, char **strs);
 
 void delete_object(struct object *o);
 

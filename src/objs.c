@@ -59,7 +59,7 @@ void delete_object(struct object *o) {
 	free(o);
 }
 
-char *str_to_str(char *str) {
+char *str_clone(char *str) {
 	size_t len = strlen(str);
 	char *des = malloc(len + 1);
 	memcpy(des, str, len);
@@ -71,11 +71,12 @@ char *str_to_str(char *str) {
  * _ls爲NULL時 创建新链表并加入元素
  *
  */
-struct list *strs_to_list(struct list *_ls, int n, char **strs) {
+struct list *strs_fill_list(struct list *_ls, int n, char **strs) {
+
 	struct list *ls = _ls == NULL ? list_new() : _ls;
 	int i;
 	for (i = 0; i < n; ++i) {
-		list_add(ls, strs[i]);
+		list_add(ls, str_clone(strs[i]));
 	}
 	return ls;
 }
