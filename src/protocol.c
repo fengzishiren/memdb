@@ -16,9 +16,10 @@
  *
  */
 
+static struct command cmd;
+
 struct command * parse_to_command(char *data) {
 	log_debug("正在解析协议数据。。。");
-	struct command *args = malloc(sizeof(struct command));
 	char *p = data;
 
 	if (*p != '*') {
@@ -41,10 +42,10 @@ struct command * parse_to_command(char *data) {
 		log_error("解析错误！提前结束");
 		goto err;
 	}
-	args->argc = (int) strtol(data + 1, NULL, 10);
-	if (args->argc < 1)
+	cmd.argc = (int) strtol(data + 1, NULL, 10);
+	if (cmd.argc < 1)
 		goto err;
-	args->argv = malloc(sizeof(char *) * args->argc);
+	cmd.argv = malloc(sizeof(char *) * cmd.argc);
 
 	char *tok;
 	int i;
@@ -59,27 +60,25 @@ struct command * parse_to_command(char *data) {
 		if (tok == NULL || strlen(tok) != len)
 			goto err;
 
-		if (i >= args->argc) {
+		if (i >= cmd.argc) {
 			log_error("解析错误！参数长度与实际不匹配");
 			goto err;
 		}
 
-		args->argv[i] = tok;
+		cmd.argv[i] = tok;
 
 		if (p)
 			p = NULL;
 	}
 
-	if (i != args->argc) {
+	if (i != cmd.argc) {
 		log_error("解析错误！参数长度与实际不匹配");
 		goto err;
 	}
 
-	return args;
+	return &cmd;
 
-	err:
-	free(args->argv);
-	free(args);
+	err: free(cmd.argv);
 	return NULL;
 }
 
@@ -95,7 +94,7 @@ struct command * parse_to_command(char *data) {
  * foobar\r\n
  *
  */
-struct string *list_to_pro_string(struct list *ls) {
+struct string *list_to_pro_string(struct list *ls, size_t start, size_t end) {
 	char buf[20];
 
 	struct string *s = string_new(PRO_MULTI);
@@ -106,7 +105,11 @@ struct string *list_to_pro_string(struct list *ls) {
 	struct list_iter it;
 	list_iter(ls, &it);
 	struct list_entry *e;
+
+	int index = 0;
 	while ((e = list_next(&it)) != NULL) {
+		if (index++ < start)
+			continue;
 		char *item = (char *) e->data;
 		s = string_concat(s, PRO_BULK);
 		sprintf(buf, "%zu", strlen(item));
@@ -114,10 +117,24 @@ struct string *list_to_pro_string(struct list *ls) {
 		s = string_concat(s, PRO_NEW_LINE);
 		s = string_concat(s, item);
 		s = string_concat(s, PRO_NEW_LINE);
+		if (end >= -1 && index >= end)
+			break;
 	}
 	return s;
 }
 
+struct string *integer_to_pro_string(struct object *o) {
+	char buf[20];
+	sprintf(buf, "%lld", (long long int) o->val.num);
+	return string_format(PRO_STRING_DATA, strlen(buf), buf);
+}
+
+
+struct string *string_to_pro_string(struct object *o) {
+	return string_format(PRO_STRING_DATA, strlen((const char *) o->val.add),
+					(const char *) o->val.add);
+}
+/*
 struct string *object_to_pro_string(struct object *o) {
 
 	struct string *str = NULL;
@@ -129,8 +146,8 @@ struct string *object_to_pro_string(struct object *o) {
 		str = string_format(PRO_STRING_DATA, strlen(buf), buf);
 		break;
 	case STRING:
-		/*$6\r\nfoobar\r\n"*/
-		/*char *s = (const char *) o->val.add;*/
+		$6\r\nfoobar\r\n"
+		char *s = (const char *) o->val.add;
 		str = string_format(PRO_STRING_DATA, strlen((const char *) o->val.add),
 				(const char *) o->val.add);
 		break;
@@ -141,4 +158,4 @@ struct string *object_to_pro_string(struct object *o) {
 		break;
 	}
 	return str;
-}
+}*/

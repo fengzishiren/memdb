@@ -91,7 +91,7 @@ struct command {
  */
 struct command *parse_to_command(char *data);
 
-struct string *list_to_pro_string(struct list *ls);
+struct string *list_to_pro_string(struct list *ls, size_t start, size_t end);
 
 struct string *object_to_pro_string(struct object *o);
 
