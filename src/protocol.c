@@ -98,7 +98,7 @@ struct string *list_to_pro_string(struct list *ls, size_t start, size_t end) {
 	char buf[20];
 
 	struct string *s = string_new(PRO_MULTI);
-	sprintf(buf, "%zu", (ls->size));
+	sprintf(buf, "%zu", end - start + 1);
 	s = string_concat(s, buf);
 	s = string_concat(s, PRO_NEW_LINE);
 
@@ -117,9 +117,10 @@ struct string *list_to_pro_string(struct list *ls, size_t start, size_t end) {
 		s = string_concat(s, PRO_NEW_LINE);
 		s = string_concat(s, item);
 		s = string_concat(s, PRO_NEW_LINE);
-		if (end >= -1 && index >= end)
+		if (index > end)
 			break;
 	}
+	log_debug("list=>%s", s->value);
 	return s;
 }
 
