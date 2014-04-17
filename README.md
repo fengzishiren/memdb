@@ -13,7 +13,7 @@
 
 支持的操作：写入、存取和删除操作
 
-具体支持命令：GET、SET、INCR、DECR、LPUSH、LINDEX、LRANGE
+具体支持命令：GET、SET、DEL、INCR、DECR、LPUSH、LINDEX、LRANGE
 
 
 支持redis官方各语言版客户端以及redis自带交互式命令行工具redis-cli
