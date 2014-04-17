@@ -75,7 +75,8 @@ static void send_packet(struct packet *pack) {
 static struct packet *get_recv_pack(int fd) {
 	pack_in.fd = fd;
 	pack_in.curtime = get_curtime();
-	pack_in.data = string_alloc(1024);
+	if (!pack_in.data)
+		pack_in.data = string_alloc(1024);
 	return recv_packet(&pack_in);
 }
 
@@ -86,6 +87,10 @@ static inline struct packet *get_send_pack(int fd) {
 }
 
 static inline void recycle_packet() {
+	string_free(pack_out.data);
+}
+
+static inline void destory_packet() {
 	string_free(pack_in.data);
 	string_free(pack_out.data);
 }
@@ -94,11 +99,11 @@ int dispatch(int fd) {
 
 	log_debug("client fd:%d", fd);
 	if (fd == -1) {
-		recycle_packet();
+		destory_packet();
 		return -1;
 	}
-	struct packet *pack_recv = get_recv_pack(fd);
 
+	struct packet *pack_recv = get_recv_pack(fd);
 	if (pack_recv == NULL)
 		return -1;
 
@@ -107,6 +112,7 @@ int dispatch(int fd) {
 	handle(pack_recv, pack_send);
 
 	send_packet(pack_send);
+
 	recycle_packet();
 	return fd;
 }
