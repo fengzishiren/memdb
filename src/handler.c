@@ -30,7 +30,6 @@ void handle(struct packet *req, struct packet *resp) {
 		return;
 	}
 
-	log_debug("客户端数据校验通过！");
 	log_debug("客户端数据解析成功！");
 
 	int i;
