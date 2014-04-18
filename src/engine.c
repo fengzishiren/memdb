@@ -89,7 +89,7 @@ static void *set_cmd(int argc, char **argv) {
 /*
  *
  * 一次可以删除多个key
- *ss
+ *
  */
 static void *del_cmd(int argc, char **argv) {
 	int cnt = 0;
