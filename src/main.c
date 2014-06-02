@@ -23,7 +23,7 @@
 struct global_environ env = { .log_closed = 0, .lv = DEBUG, .dbcnt = 10, .db =
 		NULL, .version = "1.0.0 beta", .name = "还没想好呢" };
 
-static void init_environ() {
+static void set_env() {
 	/*configure env from config file*/
 	printf("NoSQL %s \nversion %s\n", env.name, env.version);
 	if (env.log_closed || env.lv == CLOSE) {
@@ -40,10 +40,15 @@ static void init_environ() {
 	printf("环境初始化完毕！\n\n");
 }
 
+static void unset_env() {
+	memdb_free(env.db);
+	printf("注销！\n\n");
+}
+
 int main(void) {
 
 	puts(SERVER_LOGO);
-	init_environ();
+	set_env();
 
 	log_debug("启动。。。");
 
@@ -51,6 +56,7 @@ int main(void) {
 	start_epoll(ep);
 	close_epoll(ep);
 
+	unset_env();
 	puts("END");
 	return EXIT_SUCCESS;
 }
